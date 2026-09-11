@@ -1,3 +1,151 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+
+void main() {
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ProductData(),
+      builder: (context, _) => const MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: AddProductScreen(),
+      ),
+    ),
+  );
+}
+
+class ProductData extends ChangeNotifier {
+  String _title = '';
+  String _price = '';
+  String? _imageUrl;
+  DateTime _createdAt = DateTime.now();
+
+  String get title => _title;
+  String get price => _price;
+  String? get imageUrl => _imageUrl;
+  String get formattedDate => DateFormat('dd MMM yyyy, HH:mm').format(_createdAt);
+
+  void updateTitle(String value) {
+    _title = value;
+    notifyListeners();
+  }
+
+  void updatePrice(String value) {
+    _price = value;
+    notifyListeners();
+  }
+
+  void updateImageUrl(String? url) {
+    _imageUrl = url;
+    notifyListeners();
+  }
+
+  void reset() {
+    _title = '';
+    _price = '';
+    _imageUrl = null;
+    _createdAt = DateTime.now();
+    notifyListeners();
+  }
+}
+
+class AddProductScreen extends StatelessWidget {
+  const AddProductScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final productData = Provider.of<ProductData>(context);
+    final TextEditingController titleController = TextEditingController(text: productData.title);
+    final TextEditingController priceController = TextEditingController(text: productData.price);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Add Product'),
+        elevation: 0,
+        backgroundColor: Colors.blueAccent,
+        foregroundColor: Colors.white,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            GestureDetector(
+              onTap: () => productData.updateImageUrl(
+                  'https://www.gstatic.com/flutter-onestack-prototype/genui/example_1.jpg'),
+              child: Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: productData.imageUrl != null
+                    ? Image.network(productData.imageUrl!, fit: BoxFit.cover)
+                    : const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_a_photo, size: 50, color: Colors.grey),
+                            Text("Tap to add photo")
+                          ],
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            TextField(
+              controller: titleController,
+              decoration: const InputDecoration(
+                labelText: 'Product Name',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.shopping_bag),
+              ),
+              onChanged: productData.updateTitle,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: priceController,
+              decoration: const InputDecoration(
+                labelText: 'Price (₹)',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.currency_rupee),
+              ),
+              keyboardType: TextInputType.number,
+              onChanged: productData.updatePrice,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Entry Time: ${productData.formattedDate}",
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: Colors.blueAccent,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: (productData.title.isNotEmpty &&
+                      productData.price.isNotEmpty)
+                  ? () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                '${productData.title} added successfully!')),
+                      );
+                      productData.reset();
+                    }
+                  : null,
+              child: const Text('UPLOAD PRODUCT'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 ---
 id: environment-setup
 title: Get Started with React Native
